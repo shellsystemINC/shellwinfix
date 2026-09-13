@@ -47,6 +47,8 @@ public sealed class Settings
 
     /// <summary>Force the Windows 11 classic (full) right-click menu instead of the compact one.</summary>
     public bool ClassicContextMenu { get; set; } = false;
+    /// <summary>Replace the desktop right-click menu with our own theme-matched one.</summary>
+    public bool ThemedDesktopMenu { get; set; } = false;
     /// <summary>User-defined right-click menu entries (written to HKCU\Software\Classes by ContextMenuManager).</summary>
     public List<ContextMenuEntry> ContextEntries { get; set; } = new();
 

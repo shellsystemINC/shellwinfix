@@ -122,6 +122,7 @@ public partial class SettingsWindow : Window
         TrayList.ItemsSource = App.Current.Tray?.Icons;
         TrayEmptyText.Visibility = App.Current.Tray is { Icons.Count: > 0 } ? Visibility.Collapsed : Visibility.Visible;
         ClassicMenuBox.IsChecked = S.ClassicContextMenu;
+        ThemedDesktopBox.IsChecked = S.ThemedDesktopMenu;
         _context.Clear();
         foreach (var e in S.ContextEntries) _context.Add(e.Clone());
         UpdateContextEmpty();
@@ -173,6 +174,13 @@ public partial class SettingsWindow : Window
         S.Save();
         ContextMenuManager.Sync(S);
         UpdateContextEmpty();
+    }
+
+    private void ThemedDesktop_Click(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        S.ThemedDesktopMenu = ThemedDesktopBox.IsChecked == true;
+        App.Current.ApplySettings();   // installs/removes the desktop hook live
     }
 
     private void ClassicMenu_Click(object sender, RoutedEventArgs e)

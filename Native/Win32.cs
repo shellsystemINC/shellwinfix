@@ -197,6 +197,31 @@ internal static class Win32
 
     [DllImport("user32.dll")] public static extern bool PostThreadMessage(uint idThread, uint msg, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] public static extern IntPtr GetShellWindow();
+    [DllImport("user32.dll")] public static extern IntPtr WindowFromPoint(POINT point);
+    [DllImport("user32.dll")] public static extern IntPtr GetParent(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool ScreenToClient(IntPtr hWnd, ref POINT pt);
+
+    // Cross-process memory (for LVM_HITTEST against the desktop listview in explorer.exe).
+    [DllImport("kernel32.dll")] public static extern IntPtr VirtualAllocEx(IntPtr hProc, IntPtr addr, IntPtr size, uint allocType, uint protect);
+    [DllImport("kernel32.dll")] public static extern bool VirtualFreeEx(IntPtr hProc, IntPtr addr, IntPtr size, uint freeType);
+    [DllImport("kernel32.dll")] public static extern bool WriteProcessMemory(IntPtr hProc, IntPtr addr, byte[] buffer, IntPtr size, out IntPtr written);
+
+    public const uint PROCESS_VM_OPERATION = 0x0008, PROCESS_VM_READ = 0x0010, PROCESS_VM_WRITE = 0x0020;
+    public const uint MEM_COMMIT = 0x1000, MEM_RESERVE = 0x2000, MEM_RELEASE = 0x8000, PAGE_READWRITE = 0x04;
+    public const uint LVM_HITTEST = 0x1012; // LVM_FIRST(0x1000)+18
+
+    public const int WH_MOUSE_LL = 14;
+    public const uint WM_COMMAND = 0x0111;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MSLLHOOKSTRUCT
+    {
+        public POINT pt;
+        public uint mouseData;
+        public uint flags;
+        public uint time;
+        public UIntPtr dwExtraInfo;
+    }
 
     // ---- kernel32 ----
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] public static extern IntPtr LoadLibrary(string lpFileName);

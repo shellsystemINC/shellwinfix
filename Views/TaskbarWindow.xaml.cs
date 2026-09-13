@@ -188,6 +188,9 @@ public partial class TaskbarWindow : Window, INotifyPropertyChanged
         return new Rect(p.X / _dpi.DpiScaleX, p.Y / _dpi.DpiScaleY, el.ActualWidth, el.ActualHeight);
     }
 
+    public double DpiScaleX => _dpi.DpiScaleX;
+    public double DpiScaleY => _dpi.DpiScaleY;
+
     /// <summary>Monitor bounds in DIPs (using this window's DPI).</summary>
     public Rect GetMonitorRectDip() => new(
         Monitor.Bounds.Left / _dpi.DpiScaleX, Monitor.Bounds.Top / _dpi.DpiScaleY,

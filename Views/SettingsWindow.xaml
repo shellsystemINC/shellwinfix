@@ -147,6 +147,9 @@
                        Foreground="{DynamicResource TaskbarForegroundMuted}" Visibility="Collapsed" />
 
             <TextBlock Style="{StaticResource H1}" Text="Right-click menu" />
+            <CheckBox x:Name="ThemedDesktopBox" Content="Themed desktop right-click menu (drawn by TaskbarTYOL, matches your theme)" Click="ThemedDesktop_Click" />
+            <TextBlock Text="Replaces the desktop right-click menu with our own so it matches the active theme. Right-clicks on icons stay native."
+                       Foreground="{DynamicResource TaskbarForegroundMuted}" Margin="24,0,0,6" TextWrapping="Wrap" FontSize="11" />
             <CheckBox x:Name="ClassicMenuBox" Content="Use the classic full right-click menu (skip the Windows 11 compact one)" Click="ClassicMenu_Click" />
             <TextBlock Text="Add your own commands to the desktop / file / folder right-click menu — like &quot;Open in Terminal here&quot;."
                        Foreground="{DynamicResource TaskbarForegroundMuted}" Margin="0,0,0,8" TextWrapping="Wrap" />

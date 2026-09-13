@@ -32,6 +32,7 @@ public partial class App : Application
     private Mutex? _mutex;
     private EventWaitHandle? _exitEvent;
     private WinKeyHook? _hook;
+    private DesktopRightClickHook? _desktopHook;
     private ExplorerInjector? _injector;
     private DispatcherTimer? _enforceTimer;
     private DispatcherTimer? _displayDebounce;
@@ -224,6 +225,19 @@ public partial class App : Application
         }
         else if (_hook != null) _hook.Enabled = false;
 
+        // Themed desktop right-click menu: install the mouse hook on demand.
+        if (Settings.ThemedDesktopMenu)
+        {
+            if (_desktopHook == null)
+            {
+                _desktopHook = new DesktopRightClickHook();
+                _desktopHook.Triggered += () => Dispatcher.BeginInvoke(() => DesktopMenu.ShowAtCursor(Settings));
+                _desktopHook.Install();
+            }
+            _desktopHook.Enabled = true;
+        }
+        else if (_desktopHook != null) _desktopHook.Enabled = false;
+
         // Autostart via a logon scheduled task (starts with the shell, restarts itself on failure). Registration
         // runs schtasks → keep it off the startup path.
         bool wantAutostart = Settings.StartWithWindows;
@@ -390,6 +404,7 @@ public partial class App : Application
             _enforceTimer?.Stop();
             Tracker?.Stop();
             _hook?.Dispose();
+            _desktopHook?.Dispose();
             _injector?.Dispose();                        // remove our DLL from explorer.exe (clean unmap, no thread left)
             foreach (var bar in Taskbars) bar.Close();   // ABM_REMOVE → shell recomputes the work area
             Tray?.Dispose();                             // hands the notification icons back to Explorer

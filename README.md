@@ -18,6 +18,19 @@ powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
 Dev loop: `dotnet build` then run `bin\Debug\net9.0-windows\TaskbarTYOL.exe`. Requires the .NET 9 SDK.
 Quit a running instance cleanly (restores the Windows taskbar) with `TaskbarTYOL.exe --exit`.
 
+### Themed right-click menu
+
+Windows draws its own context menu, which we can't restyle. So with **Settings → Right-click menu → "Themed desktop
+right-click menu"**, TaskbarTYOL replaces the *desktop* menu with its own WPF `ContextMenu` (which inherits the active theme,
+matching the taskbar and start menu). A `WH_MOUSE_LL` hook (`DesktopRightClickHook`) catches a right-click on empty desktop,
+eats the down+up so the native menu never appears, and pops ours at the cursor. Right-clicks on desktop **icons** are left
+native — icon-vs-empty is decided with a fast cross-process `LVM_HITTEST` on the desktop listview (UI Automation was too slow
+inside a low-level hook and got the hook skipped). The menu lists the user's "Desktop"-targeted custom entries plus Refresh,
+Paste, Display settings, Personalize and Taskbar settings. Turn the setting off to get the native menu back.
+
+Separately, the same section manages **custom entries** for the native menus (`HKCU\Software\Classes\…\shell`, per-user, no
+admin) and toggles the Windows 11 **classic full menu** — see ContextMenuManager.
+
 ### Explorer / shell integration
 
 TaskbarTYOL genuinely runs code *inside* explorer.exe, but not the dangerous way. StartAllBack / ExplorerPatcher drop a
