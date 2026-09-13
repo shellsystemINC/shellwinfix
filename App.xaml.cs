@@ -82,6 +82,12 @@ public partial class App : Application
         Settings = Settings.Load();
         ImportExplorerPinsOnce();
         Task.Run(ExplorerIntegration.CleanupDeadRegistration); // scrub dead SSO entries left by earlier builds
+        // Keep the Windows right-click menu in agreement with our settings (registry I/O off the startup path).
+        Task.Run(() =>
+        {
+            try { ContextMenuManager.SetClassicMenu(Settings.ClassicContextMenu); ContextMenuManager.Sync(Settings); }
+            catch (Exception ex) { LogError(ex); }
+        });
         Tracker = new WindowTracker(Settings);
         ThemeManager.Apply(Settings.Theme);
 

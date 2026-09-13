@@ -17,6 +17,7 @@ public partial class SettingsWindow : Window
     private static Settings S => App.Current.Settings;
     private bool _loading = true;
     private readonly ObservableCollection<PinRow> _pins = new();
+    private readonly ObservableCollection<ContextMenuEntry> _context = new();
     private readonly Dictionary<string, Button> _themeCards = new();
 
     public SettingsWindow()
@@ -25,6 +26,8 @@ public partial class SettingsWindow : Window
         BuildThemeCards();
         LoadFromSettings();
         PinnedList.ItemsSource = _pins;
+        ContextList.ItemsSource = _context;
+        BuildPresetMenu();
         ThemeManager.ThemeChanged += OnThemeChanged;
         Closed += (_, _) => ThemeManager.ThemeChanged -= OnThemeChanged;
         _loading = false;
@@ -118,9 +121,16 @@ public partial class SettingsWindow : Window
         InjectStatusText.Text = App.Current.ExplorerHookStatus;
         TrayList.ItemsSource = App.Current.Tray?.Icons;
         TrayEmptyText.Visibility = App.Current.Tray is { Icons.Count: > 0 } ? Visibility.Collapsed : Visibility.Visible;
+        ClassicMenuBox.IsChecked = S.ClassicContextMenu;
+        _context.Clear();
+        foreach (var e in S.ContextEntries) _context.Add(e.Clone());
+        UpdateContextEmpty();
         RefreshPins();
         _loading = false;
     }
+
+    private void UpdateContextEmpty() =>
+        ContextEmptyText.Visibility = _context.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
     private void Commit()
     {
@@ -153,6 +163,123 @@ public partial class SettingsWindow : Window
     {
         if ((sender as FrameworkElement)?.DataContext is not TrayIcon icon) return;
         App.Current.PromoteTrayIcon(icon.PersistKey, promote: ((CheckBox)sender).IsChecked == true);
+    }
+
+    // ------------------------------------------------------------------ right-click menu
+    /// <summary>Persist the current entry list and push it into the registry.</summary>
+    private void SaveContext()
+    {
+        S.ContextEntries = _context.Select(e => e.Clone()).ToList();
+        S.Save();
+        ContextMenuManager.Sync(S);
+        UpdateContextEmpty();
+    }
+
+    private void ClassicMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        S.ClassicContextMenu = ClassicMenuBox.IsChecked == true;
+        S.Save();
+        ContextMenuManager.SetClassicMenu(S.ClassicContextMenu);
+        PromptRestartExplorer("Switching the classic / compact right-click menu needs Explorer to reload.");
+    }
+
+    private void ContextToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not ContextMenuEntry entry) return;
+        entry.Enabled = ((CheckBox)sender).IsChecked == true;
+        SaveContext();
+    }
+
+    private void ContextAdd_Click(object sender, RoutedEventArgs e)
+    {
+        var entry = new ContextMenuEntry { Label = "", Command = "" };
+        if (new ContextEntryDialog(entry, this).ShowDialog() == true)
+        {
+            _context.Add(entry);
+            SaveContext();
+        }
+    }
+
+    private void ContextEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if (ContextList.SelectedItem is not ContextMenuEntry sel) return;
+        var copy = sel.Clone();
+        if (new ContextEntryDialog(copy, this).ShowDialog() == true)
+        {
+            int i = _context.IndexOf(sel);
+            if (i >= 0) _context[i] = copy;
+            SaveContext();
+        }
+    }
+
+    private void ContextRemove_Click(object sender, RoutedEventArgs e)
+    {
+        if (ContextList.SelectedItem is not ContextMenuEntry sel) return;
+        _context.Remove(sel);
+        SaveContext();
+    }
+
+    private void ContextPreset_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button b && b.ContextMenu is { } cm) { cm.PlacementTarget = b; cm.IsOpen = true; }
+    }
+
+    private sealed record Preset(string Label, string Command, string? Icon, ContextTarget[] Targets, bool Top = false);
+
+    private void BuildPresetMenu()
+    {
+        string sys = Environment.GetFolderPath(Environment.SpecialFolder.System);
+        string pwsh = System.IO.Path.Combine(sys, "WindowsPowerShell", "v1.0", "powershell.exe");
+        string cmd = System.IO.Path.Combine(sys, "cmd.exe");
+        string notepad = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "notepad.exe");
+
+        var presets = new List<Preset>
+        {
+            new("Open PowerShell here", $"\"{pwsh}\" -NoExit -Command \"Set-Location -LiteralPath '%V'\"", pwsh,
+                new[] { ContextTarget.DesktopBackground, ContextTarget.Folder, ContextTarget.Drive }, Top: true),
+            new("Open Command Prompt here", $"\"{cmd}\" /s /k pushd \"%V\"", cmd,
+                new[] { ContextTarget.DesktopBackground, ContextTarget.Folder, ContextTarget.Drive }, Top: true),
+            new("Open with Notepad", $"\"{notepad}\" \"%1\"", notepad, new[] { ContextTarget.File }),
+            new("Copy as path", "cmd.exe /c echo \"%1\"|clip", "imageres.dll,-5302", new[] { ContextTarget.File, ContextTarget.Folder }),
+        };
+
+        if (EverythingSearch.ExePath() is { } evExe)
+            presets.Add(new("Search this folder in Everything", $"\"{evExe}\" -search \"%V\"", evExe,
+                new[] { ContextTarget.DesktopBackground, ContextTarget.Folder }));
+
+        PresetMenu.Items.Clear();
+        foreach (var p in presets)
+        {
+            var mi = new MenuItem { Header = p.Label, Tag = p };
+            mi.Click += Preset_Click;
+            PresetMenu.Items.Add(mi);
+        }
+        var custom = new MenuItem { Header = "Custom…" };
+        custom.Click += ContextAdd_Click;
+        PresetMenu.Items.Add(new Separator());
+        PresetMenu.Items.Add(custom);
+    }
+
+    private void Preset_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as MenuItem)?.Tag is not Preset p) return;
+        _context.Add(new ContextMenuEntry
+        {
+            Label = p.Label, Command = p.Command, IconPath = p.Icon,
+            Targets = p.Targets.ToList(), Top = p.Top, Enabled = true,
+        });
+        SaveContext();
+    }
+
+    private void RestartExplorer_Click(object sender, RoutedEventArgs e) =>
+        PromptRestartExplorer("Reload Explorer now so right-click menu changes take effect?");
+
+    private void PromptRestartExplorer(string why)
+    {
+        var r = MessageBox.Show(this, why + "\n\nThis briefly closes any open File Explorer windows.",
+            "Reload Explorer", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (r == MessageBoxResult.Yes) ContextMenuManager.RestartExplorer();
     }
 
     // Sliders fire on every pixel of a drag; repositioning the AppBar + broadcasting a work-area change that often

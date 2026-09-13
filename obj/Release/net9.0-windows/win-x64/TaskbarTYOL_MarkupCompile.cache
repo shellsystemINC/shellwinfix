@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\Users\Production_Yabosen\Documents\TaskbarTYOL\obj\Release\net9.0-windows\win-x64\
+C:\Users\Production_Yabosen\Documents\GitHub\shellwinfix\obj\Release\net9.0-windows\win-x64\
 TaskbarTYOL
 none
 false
 TRACE;RELEASE;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-C:\Users\Production_Yabosen\Documents\TaskbarTYOL\App.xaml
-21-1044944144
+C:\Users\Production_Yabosen\Documents\GitHub\shellwinfix\App.xaml
+22202727073
 
-311973823554
+34-224020882
 200-1147531523
-Controls\MonthCalendar.xaml;Themes\Aero.xaml;Themes\AmberTerminal.xaml;Themes\Catppuccin.xaml;Themes\Classic.xaml;Themes\Cyberpunk.xaml;Themes\Dracula.xaml;Themes\FluentDark.xaml;Themes\FluentLight.xaml;Themes\Gruvbox.xaml;Themes\Luna.xaml;Themes\MetroDark.xaml;Themes\Nord.xaml;Themes\RosePine.xaml;Themes\Solarized.xaml;Themes\Styles.xaml;Views\SearchWindow.xaml;Views\SettingsWindow.xaml;Views\StartMenuWindow.xaml;Views\TaskbarWindow.xaml;Views\TrayFlyoutWindow.xaml;
+Controls\MonthCalendar.xaml;Themes\Aero.xaml;Themes\AmberTerminal.xaml;Themes\Catppuccin.xaml;Themes\Classic.xaml;Themes\Cyberpunk.xaml;Themes\Dracula.xaml;Themes\FluentDark.xaml;Themes\FluentLight.xaml;Themes\Gruvbox.xaml;Themes\Luna.xaml;Themes\MetroDark.xaml;Themes\Nord.xaml;Themes\RosePine.xaml;Themes\Solarized.xaml;Themes\Styles.xaml;Views\ContextEntryDialog.xaml;Views\SearchWindow.xaml;Views\SettingsWindow.xaml;Views\StartMenuWindow.xaml;Views\TaskbarWindow.xaml;Views\TrayFlyoutWindow.xaml;
 
 False
 

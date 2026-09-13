@@ -146,6 +146,42 @@
             <TextBlock x:Name="TrayEmptyText" Text="No notification icons are registered right now." Margin="0,6,0,0"
                        Foreground="{DynamicResource TaskbarForegroundMuted}" Visibility="Collapsed" />
 
+            <TextBlock Style="{StaticResource H1}" Text="Right-click menu" />
+            <CheckBox x:Name="ClassicMenuBox" Content="Use the classic full right-click menu (skip the Windows 11 compact one)" Click="ClassicMenu_Click" />
+            <TextBlock Text="Add your own commands to the desktop / file / folder right-click menu — like &quot;Open in Terminal here&quot;."
+                       Foreground="{DynamicResource TaskbarForegroundMuted}" Margin="0,0,0,8" TextWrapping="Wrap" />
+            <ListBox x:Name="ContextList" Style="{StaticResource MenuListBoxStyle}" MaxHeight="200" Margin="0,4,0,0"
+                     BorderBrush="{DynamicResource MenuBorder}" BorderThickness="1" MouseDoubleClick="ContextEdit_Click">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding Enabled, Mode=OneWay}" Click="ContextToggle_Click" VerticalAlignment="Center" Margin="0,0,8,0"
+                                      ToolTip="Show this entry" />
+                            <TextBlock Text="{Binding Label}" VerticalAlignment="Center" MinWidth="200" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding TargetsText}" Margin="12,0,0,0" VerticalAlignment="Center" FontSize="11"
+                                       Foreground="{DynamicResource TaskbarForegroundMuted}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock x:Name="ContextEmptyText" Text="No custom entries yet. Add one, or pick a preset below." Margin="0,6,0,0"
+                       Foreground="{DynamicResource TaskbarForegroundMuted}" />
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Button Style="{StaticResource ActionButton}" Content="Add…" Click="ContextAdd_Click" />
+                <Button Style="{StaticResource ActionButton}" Content="Edit…" Click="ContextEdit_Click" />
+                <Button Style="{StaticResource ActionButton}" Content="Remove" Click="ContextRemove_Click" />
+                <Button Style="{StaticResource ActionButton}" Content="Add preset ▾" Click="ContextPreset_Click">
+                    <Button.ContextMenu>
+                        <ContextMenu x:Name="PresetMenu" />
+                    </Button.ContextMenu>
+                </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Button Style="{StaticResource ActionButton}" Content="Apply to Explorer (restarts it)" Click="RestartExplorer_Click" />
+            </StackPanel>
+            <TextBlock TextWrapping="Wrap" Margin="0,4,0,0" FontSize="11" Foreground="{DynamicResource TaskbarForegroundMuted}"
+                       Text="New entries appear right away in most menus; the classic-menu toggle and some changes need Explorer to reload — use the button above (it briefly closes open File Explorer windows)." />
+
             <TextBlock Style="{StaticResource H1}" Text="Pinned apps" />
             <TextBlock Text="Right-click any taskbar button or start-menu app to pin it. Drag order is the order below." Foreground="{DynamicResource TaskbarForegroundMuted}" Margin="0,0,0,8" />
             <ListBox x:Name="PinnedList" Style="{StaticResource MenuListBoxStyle}" MaxHeight="200"

@@ -45,6 +45,11 @@ public sealed class Settings
     /// <summary>Explorer taskbar ABM state captured before we first touched it (restored on exit). null = not captured yet.</summary>
     public int? NativeTaskbarOriginalState { get; set; }
 
+    /// <summary>Force the Windows 11 classic (full) right-click menu instead of the compact one.</summary>
+    public bool ClassicContextMenu { get; set; } = false;
+    /// <summary>User-defined right-click menu entries (written to HKCU\Software\Classes by ContextMenuManager).</summary>
+    public List<ContextMenuEntry> ContextEntries { get; set; } = new();
+
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,

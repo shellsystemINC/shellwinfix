@@ -14,11 +14,11 @@
   "project": {
     "version": "0.1.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Production_Yabosen\\Documents\\TaskbarTYOL\\TaskbarTYOL.csproj",
+      "projectUniqueName": "C:\\Users\\Production_Yabosen\\Documents\\GitHub\\shellwinfix\\TaskbarTYOL.csproj",
       "projectName": "TaskbarTYOL",
-      "projectPath": "C:\\Users\\Production_Yabosen\\Documents\\TaskbarTYOL\\TaskbarTYOL.csproj",
+      "projectPath": "C:\\Users\\Production_Yabosen\\Documents\\GitHub\\shellwinfix\\TaskbarTYOL.csproj",
       "packagesPath": "C:\\Users\\Production_Yabosen\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Production_Yabosen\\Documents\\TaskbarTYOL\\obj\\",
+      "outputPath": "C:\\Users\\Production_Yabosen\\Documents\\GitHub\\shellwinfix\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Production_Yabosen\\AppData\\Roaming\\NuGet\\NuGet.Config"
