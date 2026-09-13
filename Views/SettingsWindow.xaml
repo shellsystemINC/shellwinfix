@@ -1,0 +1,183 @@
+<Window x:Class="TaskbarTYOL.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TaskbarTYOL settings" Width="760" Height="640" MinWidth="600" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource MenuBackground}" Foreground="{DynamicResource MenuForeground}"
+        FontFamily="{DynamicResource ThemeFont}" FontSize="13"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True">
+
+    <Window.Resources>
+        <Style x:Key="H1" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,18,0,10" />
+            <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+        </Style>
+        <Style x:Key="Row" TargetType="Grid">
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource MenuForeground}" />
+            <Setter Property="Margin" Value="0,5" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="MinWidth" Value="160" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="Width" Value="240" />
+            <Setter Property="IsSnapToTickEnabled" Value="True" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="ThemeCard" TargetType="Button">
+            <Setter Property="Margin" Value="0,0,10,10" />
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{DynamicResource InputBackground}" BorderBrush="{DynamicResource MenuBorder}"
+                                BorderThickness="2" CornerRadius="{DynamicResource MenuCornerRadius}" Padding="8">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource TaskbarForegroundMuted}" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Selected">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ActionButton" TargetType="Button" BasedOn="{StaticResource MenuButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+            <Setter Property="Padding" Value="14,7" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+        </Style>
+    </Window.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,0,24,24">
+        <StackPanel MaxWidth="700" HorizontalAlignment="Left">
+
+            <TextBlock Style="{StaticResource H1}" Text="Theme" />
+            <TextBlock Text="Pick a look. Changes apply instantly." Foreground="{DynamicResource TaskbarForegroundMuted}" Margin="0,0,0,10" />
+            <WrapPanel x:Name="ThemePanel" />
+
+            <TextBlock Style="{StaticResource H1}" Text="Layout" />
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="180" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <TextBlock Text="Position" VerticalAlignment="Center" />
+                <ComboBox x:Name="EdgeBox" Grid.Column="1" SelectionChanged="Edge_Changed">
+                    <ComboBoxItem Content="Bottom" /><ComboBoxItem Content="Top" />
+                </ComboBox>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="180" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <TextBlock Text="Button alignment" VerticalAlignment="Center" />
+                <ComboBox x:Name="AlignBox" Grid.Column="1" SelectionChanged="Align_Changed">
+                    <ComboBoxItem Content="Left (classic)" /><ComboBoxItem Content="Center (Windows 11)" />
+                </ComboBox>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="180" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <TextBlock Text="Taskbar height" VerticalAlignment="Center" />
+                <Slider x:Name="HeightSlider" Grid.Column="1" Minimum="32" Maximum="80" TickFrequency="2" ValueChanged="Height_Changed" />
+                <TextBlock Grid.Column="2" Margin="10,0" VerticalAlignment="Center" Text="{Binding Value, ElementName=HeightSlider, StringFormat={}{0:0} px}" />
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="180" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <TextBlock Text="Icon size" VerticalAlignment="Center" />
+                <Slider x:Name="IconSlider" Grid.Column="1" Minimum="16" Maximum="40" TickFrequency="2" ValueChanged="Icon_Changed" />
+                <TextBlock Grid.Column="2" Margin="10,0" VerticalAlignment="Center" Text="{Binding Value, ElementName=IconSlider, StringFormat={}{0:0} px}" />
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="180" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <TextBlock Text="Opacity" VerticalAlignment="Center" />
+                <Slider x:Name="OpacitySlider" Grid.Column="1" Minimum="0.3" Maximum="1" TickFrequency="0.05" ValueChanged="Opacity_Changed" />
+                <TextBlock Grid.Column="2" Margin="10,0" VerticalAlignment="Center" Text="{Binding Value, ElementName=OpacitySlider, StringFormat={}{0:P0}}" />
+            </Grid>
+            <CheckBox x:Name="LabelsBox" Content="Show window titles next to icons (Windows 7 / XP style)" Click="Flag_Click" />
+            <CheckBox x:Name="CombineBox" Content="Combine windows of the same app into one button" Click="Flag_Click" />
+
+            <TextBlock Style="{StaticResource H1}" Text="Buttons" />
+            <CheckBox x:Name="SearchBox" Content="Search button" Click="Flag_Click" />
+            <CheckBox x:Name="TaskViewBox" Content="Task view button" Click="Flag_Click" />
+            <CheckBox x:Name="DesktopBox" Content="Show-desktop strip at the far right" Click="Flag_Click" />
+            <CheckBox x:Name="GearBox" Content="Settings gear in the tray" Click="Flag_Click" />
+            <CheckBox x:Name="DateBox" Content="Show date under the clock" Click="Flag_Click" />
+            <CheckBox x:Name="SecondsBox" Content="Show seconds in the clock" Click="Flag_Click" />
+
+            <TextBlock Style="{StaticResource H1}" Text="Behaviour" />
+            <CheckBox x:Name="HideNativeBox" Content="Hide the built-in Windows taskbar while TaskbarTYOL runs" Click="Flag_Click" />
+            <CheckBox x:Name="WinKeyBox" Content="Windows key opens the TaskbarTYOL start menu (Win+letter shortcuts still work)" Click="Flag_Click" />
+            <CheckBox x:Name="StartupBox" Content="Start TaskbarTYOL when I sign in" Click="Flag_Click" />
+            <TextBlock TextWrapping="Wrap" Margin="24,0,0,0" FontSize="11" Foreground="{DynamicResource TaskbarForegroundMuted}"
+                       Text="Starts with the shell via a logon task and restarts itself if it crashes." />
+            <CheckBox x:Name="InjectBox" Content="Run inside explorer.exe (bar lives and dies with the shell, like StartAllBack)" Click="Flag_Click" Margin="0,8,0,0" />
+            <TextBlock x:Name="InjectStatusText" TextWrapping="Wrap" Margin="24,0,0,0" FontSize="11" Foreground="{DynamicResource TaskbarForegroundMuted}" />
+            <CheckBox x:Name="AllMonitorsBox" Content="Show a taskbar on every monitor" Click="Flag_Click" />
+            <CheckBox x:Name="TrayIconsBox" Content="Host the notification-area icons of other apps (Steam, Discord, OneDrive…) in this bar" Click="Flag_Click" />
+
+            <TextBlock Style="{StaticResource H1}" Text="Tray icons" />
+            <TextBlock Text="Like Windows: new icons hide behind the ^ chevron. Drag an icon onto the bar (or tick it here) to keep it visible."
+                       Foreground="{DynamicResource TaskbarForegroundMuted}" Margin="0,0,0,8" TextWrapping="Wrap" />
+            <CheckBox x:Name="TrayShowAllBox" Content="Always show every icon on the bar (no chevron)" Click="Flag_Click" />
+            <ListBox x:Name="TrayList" Style="{StaticResource MenuListBoxStyle}" MaxHeight="220" Margin="0,4,0,0"
+                     BorderBrush="{DynamicResource MenuBorder}" BorderThickness="1">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding IsPromoted, Mode=OneWay}" Click="TrayPromote_Click" VerticalAlignment="Center" Margin="0,0,8,0"
+                                      ToolTip="Show on the taskbar" />
+                            <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding DisplayName}" Margin="10,0,0,0" VerticalAlignment="Center" MaxWidth="320" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding AppName}" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="11"
+                                       Foreground="{DynamicResource TaskbarForegroundMuted}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock x:Name="TrayEmptyText" Text="No notification icons are registered right now." Margin="0,6,0,0"
+                       Foreground="{DynamicResource TaskbarForegroundMuted}" Visibility="Collapsed" />
+
+            <TextBlock Style="{StaticResource H1}" Text="Pinned apps" />
+            <TextBlock Text="Right-click any taskbar button or start-menu app to pin it. Drag order is the order below." Foreground="{DynamicResource TaskbarForegroundMuted}" Margin="0,0,0,8" />
+            <ListBox x:Name="PinnedList" Style="{StaticResource MenuListBoxStyle}" MaxHeight="200"
+                     BorderBrush="{DynamicResource MenuBorder}" BorderThickness="1">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding Icon}" Width="20" Height="20" />
+                            <TextBlock Text="{Binding Name}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Path}" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="11"
+                                       Foreground="{DynamicResource TaskbarForegroundMuted}" TextTrimming="CharacterEllipsis" MaxWidth="360" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Button Style="{StaticResource ActionButton}" Content="Add program…" Click="PinAdd_Click" />
+                <Button Style="{StaticResource ActionButton}" Content="Move up" Click="PinUp_Click" />
+                <Button Style="{StaticResource ActionButton}" Content="Move down" Click="PinDown_Click" />
+                <Button Style="{StaticResource ActionButton}" Content="Remove" Click="PinRemove_Click" />
+            </StackPanel>
+
+            <TextBlock Style="{StaticResource H1}" Text="About" />
+            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TaskbarForegroundMuted}">
+                TaskbarTYOL — your own taskbar &amp; start menu replacement. Settings live in %AppData%\TaskbarTYOL\settings.json.
+                Themes are plain XAML resource dictionaries in the Themes folder; copy one, recolour it, and add it to ThemeManager.
+            </TextBlock>
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <Button Style="{StaticResource ActionButton}" Content="Open settings folder" Click="OpenFolder_Click" />
+                <Button Style="{StaticResource ActionButton}" Content="Reset to defaults" Click="Reset_Click" />
+                <Button Style="{StaticResource ActionButton}" Content="Exit TaskbarTYOL" Click="Exit_Click" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

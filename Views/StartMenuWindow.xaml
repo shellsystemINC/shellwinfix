@@ -1,0 +1,159 @@
+<Window x:Class="TaskbarTYOL.Views.StartMenuWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctl="clr-namespace:TaskbarTYOL.Controls"
+        Title="Start" Width="640" Height="660"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
+        FontFamily="{DynamicResource ThemeFont}"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True" SnapsToDevicePixels="True"
+        Deactivated="Window_Deactivated" PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <CollectionViewSource x:Key="AppsView" Source="{Binding Apps}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Letter" />
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+
+        <!-- Event handlers inside a Style setter confuse the BAML connection ids, so keep the menu as its own (unshared) resource. -->
+        <ContextMenu x:Key="AppContextMenu" x:Shared="False">
+            <MenuItem Header="Open" Click="AppOpen_Click" />
+            <MenuItem Header="Run as administrator" Click="AppRunAdmin_Click" />
+            <Separator />
+            <MenuItem Header="Pin to taskbar" Click="AppPin_Click" />
+            <MenuItem Header="Open file location" Click="AppLocation_Click" />
+        </ContextMenu>
+
+        <Style x:Key="AppItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource MenuListBoxItemStyle}">
+            <EventSetter Event="MouseLeftButtonUp" Handler="AppItem_MouseUp" />
+            <Setter Property="ContextMenu" Value="{StaticResource AppContextMenu}" />
+        </Style>
+
+        <Style x:Key="Glyph" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,10,0" />
+        </Style>
+    </Window.Resources>
+
+    <Border Margin="10" Background="{DynamicResource MenuBackground}" BorderBrush="{DynamicResource MenuBorder}"
+            BorderThickness="1" CornerRadius="{DynamicResource MenuCornerRadius}" Padding="14">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="3" Opacity="0.55" Color="{DynamicResource PopupShadow}" />
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="210" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Search -->
+            <TextBox x:Name="SearchBox" Grid.ColumnSpan="2" Style="{StaticResource SearchBoxStyle}" Margin="0,0,0,12"
+                     TextChanged="SearchBox_TextChanged" />
+            <TextBlock IsHitTestVisible="False" Text="Type here to search apps" Margin="14,0,0,12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TaskbarForegroundMuted}" Opacity="0.8" Grid.ColumnSpan="2"
+                       Visibility="{Binding Text.IsEmpty, ElementName=SearchBox, Converter={StaticResource BoolToVis}}" />
+
+            <!-- App list -->
+            <Grid Grid.Row="1">
+                <ListBox x:Name="AppList" Style="{StaticResource MenuListBoxStyle}" ItemContainerStyle="{StaticResource AppItemStyle}"
+                         ItemsSource="{Binding Source={StaticResource AppsView}}" KeyDown="AppList_KeyDown">
+                    <ListBox.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13" Margin="8,10,0,4"
+                                               Foreground="{DynamicResource Accent}" />
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </ListBox.GroupStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="{Binding Icon}" Width="24" Height="24" RenderOptions.BitmapScalingMode="HighQuality" />
+                                <TextBlock Text="{Binding Name}" Margin="12,0,0,0" VerticalAlignment="Center" FontSize="13"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock x:Name="LoadingText" Text="Loading apps…" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TaskbarForegroundMuted}" />
+            </Grid>
+
+            <!-- Side column -->
+            <Grid Grid.Row="1" Grid.Column="1" Margin="14,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal" Margin="8,4,0,14">
+                    <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}">
+                        <TextBlock x:Name="UserInitial" Foreground="White" FontWeight="Bold" FontSize="16"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock x:Name="UserName" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource MenuForeground}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1">
+                    <Button Style="{StaticResource MenuButtonStyle}" Click="Side_Click" Tag="shell:Personal">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE8A5;" /><TextBlock Text="Documents" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuButtonStyle}" Click="Side_Click" Tag="shell:Downloads">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE896;" /><TextBlock Text="Downloads" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuButtonStyle}" Click="Side_Click" Tag="shell:My Pictures">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xEB9F;" /><TextBlock Text="Pictures" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuButtonStyle}" Click="Side_Click" Tag="shell:MyComputerFolder">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE7F8;" /><TextBlock Text="This PC" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuButtonStyle}" Click="Side_Click" Tag="ms-settings:">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE713;" /><TextBlock Text="Windows Settings" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuButtonStyle}" Click="Side_Click" Tag="shell:::{2559a1f3-21d7-11d4-bdaf-00c04f60b9f0}">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE756;" /><TextBlock Text="Run…" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuButtonStyle}" Click="Side_Click" Tag="taskmgr.exe">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE9D9;" /><TextBlock Text="Task Manager" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuButtonStyle}" Click="TaskbarSettings_Click">
+                        <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE790;" /><TextBlock Text="Taskbar themes &amp; settings" /></StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Power -->
+                <Border Grid.Row="2" BorderBrush="{DynamicResource MenuBorder}" BorderThickness="0,1,0,0" Padding="0,8,0,0">
+                    <StackPanel>
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="Lock_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE72E;" /><TextBlock Text="Lock" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="SignOut_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE77B;" /><TextBlock Text="Sign out" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="Sleep_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE708;" /><TextBlock Text="Sleep" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="Restart_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE777;" /><TextBlock Text="Restart" /></StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MenuButtonStyle}" Click="Shutdown_Click">
+                            <StackPanel Orientation="Horizontal"><TextBlock Style="{StaticResource Glyph}" Text="&#xE7E8;" /><TextBlock Text="Shut down" /></StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

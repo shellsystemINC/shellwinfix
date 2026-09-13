@@ -1,0 +1,71 @@
+<UserControl x:Class="TaskbarTYOL.Controls.MonthCalendar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="280" FontFamily="{DynamicResource ThemeFont}" Foreground="{DynamicResource MenuForeground}">
+
+    <UserControl.Resources>
+        <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource MenuButtonStyle}">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <!-- one day cell -->
+        <DataTemplate x:Key="DayTemplate">
+            <Grid Height="34" Width="38">
+                <Border x:Name="Bg" Width="30" Height="30" CornerRadius="15" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Background="Transparent" />
+                <TextBlock x:Name="Txt" Text="{Binding Day}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="{DynamicResource MenuForeground}" />
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsCurrentMonth}" Value="False">
+                    <Setter TargetName="Txt" Property="Opacity" Value="0.35" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsWeekend}" Value="True">
+                    <Setter TargetName="Txt" Property="Foreground" Value="{DynamicResource TaskbarForegroundMuted}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsToday}" Value="True">
+                    <Setter TargetName="Bg" Property="Background" Value="{DynamicResource Accent}" />
+                    <Setter TargetName="Txt" Property="Foreground" Value="{DynamicResource MenuBackground}" />
+                    <Setter TargetName="Txt" Property="FontWeight" Value="SemiBold" />
+                    <Setter TargetName="Txt" Property="Opacity" Value="1" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <!-- month header -->
+        <Grid Margin="4,0,4,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="MonthButton" Style="{StaticResource MenuButtonStyle}" Click="Today_Click" Padding="6,4" ToolTip="Back to today">
+                <TextBlock x:Name="MonthText" FontSize="14" FontWeight="SemiBold" />
+            </Button>
+            <Button Grid.Column="1" Style="{StaticResource NavButton}" Content="&#xE70E;" Click="Prev_Click" ToolTip="Previous month" />
+            <Button Grid.Column="2" Style="{StaticResource NavButton}" Content="&#xE70D;" Click="Next_Click" ToolTip="Next month" />
+        </Grid>
+
+        <!-- weekday names -->
+        <ItemsControl x:Name="WeekdayRow">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" FontSize="11" HorizontalAlignment="Center" Margin="0,0,0,4"
+                               Foreground="{DynamicResource TaskbarForegroundMuted}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- 6 x 7 day grid -->
+        <ItemsControl x:Name="DayGrid" ItemTemplate="{StaticResource DayTemplate}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><UniformGrid Columns="7" Rows="6" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

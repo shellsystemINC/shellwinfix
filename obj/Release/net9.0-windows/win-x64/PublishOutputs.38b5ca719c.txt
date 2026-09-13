@@ -1,0 +1,6 @@
+C:\Users\Production_Yabosen\Documents\TaskbarTYOL\publish\TaskbarTYOL.exe
+C:\Users\Production_Yabosen\Documents\TaskbarTYOL\publish\TaskbarTYOLHook.dll
+C:\Users\Production_Yabosen\Documents\TaskbarTYOL\publish\TaskbarTYOL.deps.json
+C:\Users\Production_Yabosen\Documents\TaskbarTYOL\publish\TaskbarTYOL.runtimeconfig.json
+C:\Users\Production_Yabosen\Documents\TaskbarTYOL\publish\TaskbarTYOL.pdb
+C:\Users\Production_Yabosen\Documents\TaskbarTYOL\publish\TaskbarTYOL.dll

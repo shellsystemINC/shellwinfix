@@ -1,0 +1,237 @@
+<Window x:Class="TaskbarTYOL.Views.TaskbarWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctl="clr-namespace:TaskbarTYOL.Controls"
+        Title="TaskbarTYOL"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True" ShowActivated="False"
+        Width="800" Height="48" Left="0" Top="0"
+        FontFamily="{DynamicResource ThemeFont}"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True" SnapsToDevicePixels="True">
+
+    <Window.Resources>
+        <!-- Styles first: StaticResource lookups inside the templates below are resolved in dictionary order. -->
+        <Style x:Key="GlyphText" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="TrayGlyph" TargetType="TextBlock" BasedOn="{StaticResource GlyphText}">
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style x:Key="TrayIconButtonStyle" TargetType="Button" BasedOn="{StaticResource TrayButtonStyle}">
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="Margin" Value="0,4" />
+            <Setter Property="MinWidth" Value="30" />
+        </Style>
+
+        <!-- One task button -->
+        <DataTemplate x:Key="TaskItemTemplate">
+            <Button Style="{StaticResource TaskButtonStyle}"
+                    Click="Task_Click" MouseUp="Task_MouseUp"
+                    ToolTip="{Binding Title}" ToolTipService.InitialShowDelay="600">
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Open new window" Click="TaskLaunchNew_Click"
+                                  Visibility="{Binding CanLaunch, Converter={StaticResource BoolToVis}}" />
+                        <MenuItem Header="Pin to taskbar" Click="TaskPin_Click"
+                                  Visibility="{Binding CanPin, Converter={StaticResource BoolToVis}}" />
+                        <MenuItem Header="Unpin from taskbar" Click="TaskUnpin_Click"
+                                  Visibility="{Binding IsPinned, Converter={StaticResource BoolToVis}}" />
+                        <Separator Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}" />
+                        <MenuItem Header="Close window" Click="TaskClose_Click"
+                                  Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}" />
+                    </ContextMenu>
+                </Button.ContextMenu>
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="{Binding Icon}"
+                           Width="{Binding DataContext.IconSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                           Height="{Binding DataContext.IconSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                           RenderOptions.BitmapScalingMode="HighQuality" />
+                    <TextBlock Text="{Binding Title}" Margin="8,0,2,0" VerticalAlignment="Center" MaxWidth="150"
+                               TextTrimming="CharacterEllipsis" FontSize="12"
+                               Visibility="{Binding DataContext.LabelVisibility, RelativeSource={RelativeSource AncestorType=Window}}" />
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+
+        <!-- One notification-area icon from another app -->
+        <DataTemplate x:Key="TrayIconTemplate">
+            <Button Style="{StaticResource TrayIconButtonStyle}" ToolTip="{Binding Tip}" ToolTipService.InitialShowDelay="500"
+                    Visibility="{Binding IsHidden, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"
+                    PreviewMouseDown="TrayIcon_MouseDown" PreviewMouseUp="TrayIcon_MouseUp" MouseDoubleClick="TrayIcon_DoubleClick"
+                    PreviewMouseMove="TrayIcon_MouseMove" ContextMenuOpening="TrayIcon_ContextMenuOpening">
+                <Image Source="{Binding Icon}" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality" />
+            </Button>
+        </DataTemplate>
+
+    </Window.Resources>
+
+    <Border x:Name="Root"
+            Background="{DynamicResource TaskbarBackground}"
+            BorderBrush="{DynamicResource TaskbarBorder}"
+            BorderThickness="{DynamicResource TaskbarBorderThickness}"
+            CornerRadius="{DynamicResource TaskbarCornerRadius}"
+            Opacity="{Binding BarOpacity}">
+        <Border.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Taskbar settings…" Click="OpenSettings_Click" />
+                <MenuItem Header="Task Manager" Click="TaskManager_Click" />
+                <Separator />
+                <MenuItem x:Name="ToggleNativeItem" Header="Show Windows taskbar" Click="ToggleNative_Click" />
+                <MenuItem Header="Exit TaskbarTYOL" Click="Exit_Click" />
+            </ContextMenu>
+        </Border.ContextMenu>
+
+        <Grid x:Name="BarGrid" SizeChanged="Layout_SizeChanged">
+
+            <!-- ===== Start + task buttons. Centred on the *screen* (margins mirror the tray width) so the tray growing
+                 never pushes the group off-centre; the margin shrinks only when the group would collide with the tray.
+                 The ScrollViewer keeps a very long task list from running under the tray. ===== -->
+            <ScrollViewer x:Name="TaskScroller" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                          PreviewMouseWheel="TaskScroller_Wheel" Focusable="False" Margin="{Binding TaskAreaMargin}">
+                <StackPanel x:Name="TaskGroup" Orientation="Horizontal" HorizontalAlignment="{Binding TaskAlign}" SizeChanged="Layout_SizeChanged">
+                    <Button x:Name="StartButton" Style="{StaticResource StartButtonStyle}" Click="Start_Click" ToolTip="Start">
+                        <StackPanel Orientation="Horizontal">
+                            <ctl:WindowsLogo Width="20" Height="20" VerticalAlignment="Center" />
+                            <TextBlock Text="{DynamicResource StartText}" FontSize="15" Margin="7,0,2,0" VerticalAlignment="Center"
+                                       Visibility="{Binding Text, RelativeSource={RelativeSource Self}, Converter={StaticResource EmptyToCollapsed}}" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="SearchButton" Style="{StaticResource TrayButtonStyle}" Click="Search_Click" ToolTip="Search (Everything)"
+                            Visibility="{Binding SearchVis}" MinWidth="40">
+                        <TextBlock Style="{StaticResource GlyphText}" Text="&#xE721;" />
+                    </Button>
+                    <Button Style="{StaticResource TrayButtonStyle}" Click="TaskView_Click" ToolTip="Task view"
+                            Visibility="{Binding TaskViewVis}" MinWidth="40">
+                        <TextBlock Style="{StaticResource GlyphText}" Text="&#xE7C4;" />
+                    </Button>
+
+                    <Rectangle Width="1" Margin="4,12" Fill="{DynamicResource TaskbarBorder}" />
+
+                    <ItemsControl ItemsSource="{Binding Items}" ItemTemplate="{StaticResource TaskItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ===== Tray ===== -->
+            <StackPanel x:Name="TrayPanel" Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Right"
+                        SizeChanged="Layout_SizeChanged" Background="Transparent"
+                        AllowDrop="True" DragOver="TrayArea_DragOver" Drop="TrayArea_Drop">
+
+                <!-- system icons: only on the primary monitor -->
+                <StackPanel Orientation="Horizontal" Visibility="{Binding PrimaryVis}">
+                    <Button Style="{StaticResource TrayIconButtonStyle}" Click="OpenSettings_Click" ToolTip="Taskbar settings"
+                            Visibility="{Binding SettingsVis}">
+                        <TextBlock Style="{StaticResource TrayGlyph}" Text="&#xE713;" />
+                    </Button>
+
+                    <!-- overflow chevron: opens the flyout with the icons that are not promoted to the bar -->
+                    <Button x:Name="ChevronButton" Style="{StaticResource TrayIconButtonStyle}" Click="Chevron_Click" ToolTip="Show hidden icons"
+                            Visibility="{Binding OverflowVis}" MinWidth="24" Padding="3,0">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Tray icon settings…" Click="OpenSettings_Click" />
+                                <MenuItem Header="Always show all icons" Click="TrayShowAll_Click" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                        <TextBlock Style="{StaticResource TrayGlyph}" Text="{Binding ChevronGlyph}" FontSize="11" />
+                    </Button>
+
+                    <!-- third-party notification icons promoted to the bar (hijacked from Explorer) -->
+                    <ItemsControl x:Name="TrayItems" ItemsSource="{Binding TrayVisibleIcons}" ItemTemplate="{StaticResource TrayIconTemplate}" Visibility="{Binding TrayVis}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+
+                    <Rectangle Width="1" Margin="4,14" Fill="{DynamicResource TaskbarBorder}" Visibility="{Binding TrayVis}" />
+
+                    <Button Style="{StaticResource TrayIconButtonStyle}" Click="Network_Click" ToolTip="{Binding NetTip}">
+                        <TextBlock Style="{StaticResource TrayGlyph}" Text="{Binding NetGlyph}" />
+                    </Button>
+
+                    <Button x:Name="VolumeButton" Style="{StaticResource TrayIconButtonStyle}" Click="Volume_Click"
+                            MouseWheel="Volume_Wheel" MouseRightButtonUp="Volume_RightClick" ToolTip="{Binding VolTip}">
+                        <TextBlock Style="{StaticResource TrayGlyph}" Text="{Binding VolGlyph}" />
+                    </Button>
+
+                    <Button Style="{StaticResource TrayIconButtonStyle}" Click="Battery_Click" ToolTip="{Binding BatTip}"
+                            Visibility="{Binding BatteryVis}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource TrayGlyph}" Text="{Binding BatGlyph}" />
+                            <TextBlock Text="{Binding BatText}" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <Button x:Name="ClockButton" Style="{StaticResource TrayButtonStyle}" Click="Clock_Click" Padding="10,0" Margin="1,4,0,4">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding TimeText}" FontSize="12" HorizontalAlignment="Right" />
+                        <TextBlock Text="{Binding DateText}" FontSize="11" HorizontalAlignment="Right"
+                                   Foreground="{DynamicResource TaskbarForegroundMuted}" Visibility="{Binding DateVis}" />
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource TrayIconButtonStyle}" Click="Notifications_Click" ToolTip="Notifications"
+                        Visibility="{Binding PrimaryVis}">
+                    <TextBlock Style="{StaticResource TrayGlyph}" Text="&#xEA8F;" />
+                </Button>
+
+                <!-- popups -->
+                <Popup x:Name="CalendarPopup" PlacementTarget="{Binding ElementName=Root}" Placement="Top"
+                       StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                    <Border Background="{DynamicResource MenuBackground}" BorderBrush="{DynamicResource MenuBorder}" BorderThickness="1"
+                            CornerRadius="{DynamicResource MenuCornerRadius}" Padding="10" Margin="8">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.5" />
+                        </Border.Effect>
+                        <StackPanel>
+                            <TextBlock x:Name="CalendarHeader" FontSize="18" FontWeight="SemiBold" Margin="6,0,4,2"
+                                       Foreground="{DynamicResource MenuForeground}" />
+                            <TextBlock x:Name="CalendarSubHeader" FontSize="12" Margin="6,0,4,10"
+                                       Foreground="{DynamicResource TaskbarForegroundMuted}" />
+                            <ctl:MonthCalendar x:Name="CalendarControl" />
+                        </StackPanel>
+                    </Border>
+                </Popup>
+
+                <Popup x:Name="VolumePopup" PlacementTarget="{Binding ElementName=Root}" Placement="Top"
+                       StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                    <Border Background="{DynamicResource MenuBackground}" BorderBrush="{DynamicResource MenuBorder}" BorderThickness="1"
+                            CornerRadius="{DynamicResource MenuCornerRadius}" Padding="14,12" Margin="8" MinWidth="280">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.5" />
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button Style="{StaticResource TrayIconButtonStyle}" Click="Mute_Click" ToolTip="Mute / unmute" Margin="0,0,8,0">
+                                <TextBlock Style="{StaticResource GlyphText}" Text="{Binding VolGlyph}" Foreground="{DynamicResource MenuForeground}" />
+                            </Button>
+                            <Slider x:Name="VolumeSlider" Grid.Column="1" Minimum="0" Maximum="100" VerticalAlignment="Center"
+                                    IsMoveToPointEnabled="True" ValueChanged="VolumeSlider_Changed" />
+                            <TextBlock Grid.Column="2" Text="{Binding VolText}" Width="34" TextAlignment="Right" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MenuForeground}" FontSize="13" />
+                        </Grid>
+                    </Border>
+                </Popup>
+
+                <Button Style="{StaticResource TrayButtonStyle}" Click="ShowDesktop_Click" ToolTip="Show desktop"
+                        Visibility="{Binding DesktopVis}" Width="8" Margin="2,0,2,0" Padding="0">
+                    <Rectangle Width="1" Height="20" Fill="{DynamicResource TaskbarForegroundMuted}" Opacity="0.6" />
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
